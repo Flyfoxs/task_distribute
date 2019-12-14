@@ -68,6 +68,7 @@ class task_locker:
                 if lock_id:
                     print(f'create lock success for {f.__name__} with:{lock_id}')
                     res = f(*args, **kwargs)
+                    print(f'Fun#{f.__name__} is done with {lock_id}')
                     locker.update_lock(lock_id, res)
                     return res
                 else:
@@ -87,6 +88,7 @@ class task_locker:
             print(f'create lock success for block#{task_id} with:{lock_id}')
             yield
             self.update_lock(lock_id, result=None)
+            print(f'block#{task_id} is done with {lock_id}')
         else:
             exist_lock = self.task.find_one({"_version": self.version,
                                                '_task_id': task_id
