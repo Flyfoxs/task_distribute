@@ -1,0 +1,67 @@
+version: '3.7'
+services:
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 0.0.0.0:27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: sample
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: db
+    expose:
+      - 27017
+    networks:
+      - omniboard
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  omniboard:
+    image: vivekratnavel/omniboard:latest
+    restart: always
+    command: ["--mu", "mongodb://sample:password@mongo:27017/db?authSource=admin"]
+    ports:
+      - 0.0.0.0:9000:9000
+    networks:
+      - omniboard
+    depends_on:
+      - mongo
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 0.0.0.0:8081:8081
+    environment:
+        ME_CONFIG_OPTIONS_EDITORTHEME: ambiance
+        ME_CONFIG_MONGODB_SERVER: mongo
+        ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
+        ME_CONFIG_MONGODB_ADMINUSERNAME: sample
+        ME_CONFIG_MONGODB_ADMINPASSWORD: password
+        ME_CONFIG_BASICAUTH_USERNAME: sample
+        ME_CONFIG_BASICAUTH_PASSWORD: password
+
+    expose:
+      - 8081
+    networks:
+      - omniboard
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+
+networks:
+  omniboard:
