@@ -82,14 +82,15 @@ class task_locker:
     @contextlib.contextmanager
     def lock_block(self, task_id='Default_block', **job_paras):
         import sys
-        lock_id = self.register_lock(_task_id=str(task_id), **job_paras, )
+        lock_id = self.register_lock(_task_id=task_id, **job_paras, )
         if lock_id:
             print(f'create lock success for block#{task_id} with:{lock_id}')
             yield
             self.update_lock(lock_id, result=None)
         else:
             exist_lock = self.task.find_one({"_version": self.version,
-                                               '_task_id': str(job_paras)})
+                                               '_task_id': task_id
+                                             })
             raise Warning(f'Already had lock#{exist_lock}')
 
 
