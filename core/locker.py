@@ -55,7 +55,8 @@ class task_locker:
                               "$currentDate": {"mt": True}
                               },
                              )
-        print(f'Fun#{f.__name__} is done with {lock_id}')
+        print(f'block done with {lock_id}')
+
 
     def lock(self, max_time=-1):
         locker = self
