@@ -3,7 +3,7 @@ from core.locker import task_locker
 locker = task_locker('mongodb://sample:password@mongo:27017/db?authSource=admin', version='v100')
 
 
-locker.remove_version()
+#locker.remove_version()
 
 
 @locker.lock()

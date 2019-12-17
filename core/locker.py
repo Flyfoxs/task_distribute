@@ -9,7 +9,6 @@ import functools
 from bson.objectid import ObjectId
 from datetime import datetime
 import socket
-import time
 
 
 class task_locker:
@@ -21,8 +20,9 @@ class task_locker:
         self.version = version
 
     def register_lock(self, _task_id, **kwargs):
+        if self.version is None or self.version is False:
+            return True
         try:
-
             print('begin insert')
             lock_id = self.task.insert({
                 "_version": self.version,
@@ -30,6 +30,7 @@ class task_locker:
                 'server_ip': socket.gethostname(),
                 'ct': datetime.now(),
                 **kwargs})
+            print(f'create lock success for block#{_task_id} with:{lock_id}')
             return str(lock_id)
         except Exception as e:
             if isinstance(e, DuplicateKeyError):
@@ -46,11 +47,15 @@ class task_locker:
         #         duration = end-begin
         #         print('duration=',duration)
 
+        if self.version is None or self.version is False:
+            return True
+
         self.task.update_one({'_id': ObjectId(lock_id)},
                              {'$set': {'result': result, },
                               "$currentDate": {"mt": True}
                               },
                              )
+        print(f'Fun#{f.__name__} is done with {lock_id}')
 
     def lock(self, max_time=-1):
         locker = self
@@ -66,9 +71,9 @@ class task_locker:
                 print(f"{f.__name__}({args},{kwargs})")
                 lock_id = locker.register_lock(_task_id=str(job_paras), **job_paras, )
                 if lock_id:
-                    print(f'create lock success for {f.__name__} with:{lock_id}')
+
                     res = f(*args, **kwargs)
-                    print(f'Fun#{f.__name__} is done with {lock_id}')
+
                     locker.update_lock(lock_id, res)
                     return res
                 else:
@@ -85,15 +90,13 @@ class task_locker:
         import sys
         lock_id = self.register_lock(_task_id=task_id, **job_paras, )
         if lock_id:
-            print(f'create lock success for block#{task_id} with:{lock_id}')
             yield
             self.update_lock(lock_id, result=None)
-            print(f'block#{task_id} is done with {lock_id}')
         else:
             exist_lock = self.task.find_one({"_version": self.version,
                                                '_task_id': task_id
                                              })
-            print(f'Already had lock#{exist_lock}')
+            raise(f'Already had lock#{exist_lock}')
 
 
     def remove_version(self):
