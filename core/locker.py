@@ -97,7 +97,7 @@ class task_locker:
             exist_lock = self.task.find_one({"_version": self.version,
                                                '_task_id': task_id
                                              })
-            raise(f'Already had lock#{exist_lock}')
+            raise Exception(f'Already had lock#{exist_lock}')
 
 
     def remove_version(self):
