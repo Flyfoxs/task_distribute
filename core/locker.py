@@ -99,7 +99,7 @@ class task_locker:
         lock_id = self.register_lock(_task_id=task_id, **job_paras, )
         if lock_id:
             try:
-                yield
+                yield lock_id
                 self.update_lock(lock_id, result=None)
             except Exception as e:
                 if self.rollback:
