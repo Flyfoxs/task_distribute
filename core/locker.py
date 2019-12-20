@@ -81,7 +81,7 @@ class task_locker:
                     except Exception as e:
                         if self.rollback:
                             print(f'Rollback the locker:{lock_id}')
-                            locker.task.remove({'_id': lock_id})
+                            locker.task.remove({'_id': ObjectId(lock_id)})
                         raise e
                 else:
                     exist_lock = locker.task.find_one({"_version": self.version,
@@ -104,7 +104,7 @@ class task_locker:
             except Exception as e:
                 if self.rollback:
                     print(f'Rollback the locker:{lock_id}')
-                    self.task.remove({'_id': lock_id})
+                    self.task.remove({'_id': ObjectId(lock_id)})
                 raise e
 
         else:
