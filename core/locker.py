@@ -12,12 +12,13 @@ import socket
 
 
 class task_locker:
-    def __init__(self, url, version):
+    def __init__(self, url, version, rollback=True):
         self.url = url
         self.client = MongoClient(url)
         self.task = self.client['task'].task
         self.task.create_index([('_version', 1), ('_task_id', 1)], unique=True);
         self.version = version
+        self.rollback = rollback
 
     def register_lock(self, _task_id, **kwargs):
         if self.version is None or self.version is False:
@@ -72,14 +73,20 @@ class task_locker:
                 print(f"{f.__name__}({args},{kwargs})")
                 lock_id = locker.register_lock(_task_id=str(job_paras), **job_paras, )
                 if lock_id:
+                    try:
+                        res = f(*args, **kwargs)
 
-                    res = f(*args, **kwargs)
-
-                    locker.update_lock(lock_id, res)
-                    return res
+                        locker.update_lock(lock_id, res)
+                        return res
+                    except Exception as e:
+                        if self.rollback:
+                            print(f'Rollback the locker:{lock_id}')
+                            locker.task.remove({'_id': lock_id})
+                        raise e
                 else:
                     exist_lock = locker.task.find_one({"_version": self.version,
                                                        '_task_id': str(job_paras)})
+
                     raise Warning(f'Already had lock#{exist_lock}')
 
             return wrapper
@@ -91,8 +98,15 @@ class task_locker:
         import sys
         lock_id = self.register_lock(_task_id=task_id, **job_paras, )
         if lock_id:
-            yield
-            self.update_lock(lock_id, result=None)
+            try:
+                yield
+                self.update_lock(lock_id, result=None)
+            except Exception as e:
+                if self.rollback:
+                    print(f'Rollback the locker:{lock_id}')
+                    self.task.remove({'_id': lock_id})
+                raise e
+
         else:
             exist_lock = self.task.find_one({"_version": self.version,
                                                '_task_id': task_id
@@ -102,3 +116,5 @@ class task_locker:
 
     def remove_version(self):
         self.task.remove({'_version' : self.version})
+
+
