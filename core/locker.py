@@ -165,7 +165,7 @@ class task_locker:
         if exist_lock and exist_task and self.remove_failed == 2:
             self.client.db.runs.remove({'config.lock_name': task_id,
                                        'config.version':self.version,
-                                       'status':'FAILED'
+                                       'status' : {'$in' : ['FAILED', 'INTERRUPTED']},
                                        })
             print(f'Remove the failed sacred Job task_id:{task_id}, version:{self.version}')
 
