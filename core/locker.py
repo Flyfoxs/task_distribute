@@ -10,6 +10,7 @@ from bson.objectid import ObjectId
 from datetime import datetime
 import socket
 from easydict import EasyDict as edict
+import sys
 
 class task_locker:
 
@@ -34,6 +35,10 @@ class task_locker:
     def register_lock(self, _task_id, **kwargs):
         if self.version is None or self.version is False:
             return True
+
+        if self.remove_failed:
+            self.remove_failed_lock(_task_id)
+
         try:
             print('begin insert')
             lock_id = self.task.insert({
@@ -69,22 +74,33 @@ class task_locker:
                              )
         print(f'block done with {lock_id}')
 
-
-    def lock(self, max_time=-1):
+    def lock(self, ex=None):
         locker = self
 
         def decorator(f):
             @functools.wraps(f)
             def wrapper(*args, **kwargs):
 
-                job_paras = {'fn_name': f.__name__,
-                             'args': args,
-                             'kwargs': kwargs}
-                print('job_paras', job_paras)
-                print(f"{f.__name__}({args},{kwargs})")
-                lock_id = locker.register_lock(_task_id=str(job_paras), **job_paras, )
+                if ex is not None:
+                    lock_name = f.__name__ + ',' + ','.join([item for item in sys.argv])
+                else:
+                    job_paras = {'fn_name': f.__name__,
+                                 'args': args,
+                                 'kwargs': kwargs}
+                    print('job_paras', job_paras)
+                    print(f"{f.__name__}({args},{kwargs})")
+                    lock_name = str(job_paras)
+
+                lock_id = locker.register_lock(_task_id=lock_name, **job_paras, )
+
                 if lock_id:
                     try:
+                        if ex is not None:
+                            ex.add_config({
+                                'lock_id': lock_id,
+                                'lock_name': lock_name,
+                                'version': self.version,
+                            })
                         res = f(*args, **kwargs)
 
                         locker.update_lock(lock_id, res)
@@ -107,8 +123,6 @@ class task_locker:
     @contextlib.contextmanager
     def lock_block(self, task_id='Default_block', **job_paras):
         import sys
-        if self.remove_failed:
-            self.remove_failed_lock(task_id)
 
         lock_id = self.register_lock(_task_id=task_id, **job_paras, )
         if lock_id:
@@ -135,6 +149,11 @@ class task_locker:
         self.task.remove({'_version' : self.version})
 
     def remove_failed_lock(self, task_id):
+        """
+        It's only work when the job is running with sacred job
+        :param task_id:
+        :return:
+        """
 
         exist_lock = self.client.task.task.find_one({"_version": self.version, '_task_id': task_id})
 
