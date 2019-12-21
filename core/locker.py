@@ -101,6 +101,7 @@ class task_locker:
                                 'lock_name': lock_name,
                                 'version': self.version,
                             })
+                            print('======ex', ex)
                         res = f(*args, **kwargs)
 
                         locker.update_lock(lock_id, res)
