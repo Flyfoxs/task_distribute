@@ -153,7 +153,7 @@ class task_locker:
         try:
             sacred_dict = {'config.lock_name': task_id,
                                        'config.version':self.version,
-                                       'status' : {'$in' : ['FAILED', 'INTERRUPTED']},
+                                       'status' : {'$in' : ['FAILED', 'INTERRUPTED', 'PROBABLY_DEAD']},
                                        }
             exist_task = self.client.db.runs.find_one(sacred_dict)
         except Exception as e:
