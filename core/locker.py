@@ -57,7 +57,6 @@ class task_locker:
             if isinstance(e, DuplicateKeyError):
                 print(f'Already has same taskid:{self.version},{_task_id}')
             else:
-                print('kwargs_mini', kwargs_mini)
                 raise e
             return False
 
@@ -79,7 +78,8 @@ class task_locker:
                              )
         print(f'block done with {lock_id}')
 
-    def lock(self, ex=None):
+
+    def lock(self):
         locker = self
 
         def decorator(f):
@@ -89,26 +89,11 @@ class task_locker:
                 job_paras = {'fn_name': f.__name__,
                              'args': args,
                              'kwargs': kwargs}
-
-                if ex is not None:
-                    lock_name = f.__name__ + ',' + ','.join([item for item in sys.argv])
-                else:
-                    print('job_paras', job_paras)
-                    print(f"{f.__name__}({args},{kwargs})")
-                    lock_name = str(job_paras)
-
-                lock_id = locker.register_lock(_task_id=lock_name, **job_paras, )
-
+                print('job_paras', job_paras)
+                print(f"{f.__name__}({args},{kwargs})")
+                lock_id = locker.register_lock(_task_id=str(job_paras), **job_paras, )
                 if lock_id:
                     try:
-                        if ex is not None:
-                            ex.add_config({
-                                'lock_id': lock_id,
-                                'lock_name': lock_name,
-                                'version': self.version,
-                            })
-                            print('======ex', ex)
-                        print('222222======ex', ex)
                         res = f(*args, **kwargs)
 
                         locker.update_lock(lock_id, res)
