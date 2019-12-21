@@ -23,8 +23,10 @@ class task_locker:
         :param version:
         :param rollback:
         :param remove_failed: 0: Don't remove
-                              1: Remove locker
-                              2: Remove locker and sacred task
+                              1: Remove locker, when sacred job is failed
+                              2: Remove locker and sacred task, when sacred job is failed
+                              9: Remove locker and sacred task, when sacred job is failed.
+                                 remove lockd if can not find related job after locker create 1 mins
         """
         self.url = url
         self.client = MongoClient(url)
@@ -150,6 +152,9 @@ class task_locker:
 
         exist_lock = self.client.task.task.find_one({"_version": self.version, '_task_id': task_id})
 
+        if exist_lock is None :
+            return
+
         try:
             sacred_dict = {'config.lock_name': task_id,
                                        'config.version':self.version,
@@ -166,5 +171,12 @@ class task_locker:
         if exist_lock and exist_task and self.remove_failed == 2:
             self.client.db.runs.remove(sacred_dict)
             print(f'Remove the failed sacred Job task_id:{task_id}, version:{self.version}')
+
+        duration = datetime.now() - exist_lock.get('ct')
+        duration =duration.total_seconds()
+        if exist_lock and exist_task is None and duration >= 100 and self.remove_failed == 9:
+            self.task.remove({"_version": self.version, '_task_id': task_id})
+            print(f'Remove the lock {exist_lock}, can not find sacred job after {duration} seconds')
+
 
 
