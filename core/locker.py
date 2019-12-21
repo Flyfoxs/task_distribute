@@ -12,6 +12,7 @@ import socket
 from easydict import EasyDict as edict
 import sys
 from sacred.run import Run
+from sacred import Experiment
 
 class task_locker:
 
@@ -42,7 +43,7 @@ class task_locker:
 
         try:
 
-            kwargs_mini = dict([(k, v) for k, v in kwargs.items() if not isinstance(v,Run) ])
+            kwargs_mini = dict([(k, v) for k, v in kwargs.items() if not isinstance(v, [Run,Experiment]) ])
             print('begin insert')
             lock_id = self.task.insert({
                 "_version": self.version,
