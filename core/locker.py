@@ -81,12 +81,13 @@ class task_locker:
             @functools.wraps(f)
             def wrapper(*args, **kwargs):
 
+                job_paras = {'fn_name': f.__name__,
+                             'args': args,
+                             'kwargs': kwargs}
+
                 if ex is not None:
                     lock_name = f.__name__ + ',' + ','.join([item for item in sys.argv])
                 else:
-                    job_paras = {'fn_name': f.__name__,
-                                 'args': args,
-                                 'kwargs': kwargs}
                     print('job_paras', job_paras)
                     print(f"{f.__name__}({args},{kwargs})")
                     lock_name = str(job_paras)
