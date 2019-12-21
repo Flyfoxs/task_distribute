@@ -172,11 +172,20 @@ class task_locker:
             self.client.db.runs.remove(sacred_dict)
             print(f'Remove the failed sacred Job task_id:{task_id}, version:{self.version}')
 
-        duration = datetime.now() - exist_lock.get('ct')
-        duration =duration.total_seconds()
-        if exist_lock and exist_task is None and duration >= 100 and self.remove_failed == 9:
-            self.task.remove({"_version": self.version, '_task_id': task_id})
-            print(f'Remove the lock {exist_lock}, can not find sacred job after {duration} seconds')
+        # Remove the lock if no job is found is sacred
+        if self.remove_failed == 9:
+            duration = datetime.now() - exist_lock.get('ct')
+            duration =duration.total_seconds()
+
+            sacred_dict = {'config.lock_name': task_id,
+                                       'config.version':self.version,
+                                       #'status' : {'$in' : ['FAILED', 'INTERRUPTED', 'PROBABLY_DEAD']},
+                                       }
+            exist_task = self.client.db.runs.find_one(sacred_dict)
+
+            if exist_lock and exist_task is None and duration >= 100:
+                self.task.remove({"_version": self.version, '_task_id': task_id})
+                print(f'Remove the lock {exist_lock}, can not find sacred job after {duration} seconds')
 
 
 
