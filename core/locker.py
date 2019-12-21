@@ -13,13 +13,15 @@ from easydict import EasyDict as edict
 
 class task_locker:
 
-    def __init__(self, url, version, rollback=True, remove_failed=True):
+    def __init__(self, url, version, rollback=True, remove_failed=2):
         """
 
         :param url:
         :param version:
         :param rollback:
-        :param remove_failed: It only work when the task is manager by sacred
+        :param remove_failed: 0: Don't remove
+                              1: Remove locker
+                              2: Remove locker and sacred task
         """
         self.url = url
         self.client = MongoClient(url)
@@ -144,8 +146,15 @@ class task_locker:
         except Exception as e:
             exist_task = None
 
-        if exist_lock and exist_task:
+        if exist_lock and exist_task and self.remove_faile >= 1:
             self.task.remove({"_version": self.version, '_task_id': task_id})
             print(f'Remove the lock {exist_lock}, job is failed')
+
+        if exist_lock and exist_task and self.remove_faile == 2:
+            self.client.db.runs.remove({'config.lock_name': task_id,
+                                       'config.version':self.version,
+                                       'status':'FAILED'
+                                       })
+            print(f'Remove the failed sacred Job task_id:{task_id}, version:{self.version}')
 
 
