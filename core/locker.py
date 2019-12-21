@@ -43,7 +43,7 @@ class task_locker:
 
         try:
 
-            kwargs_mini = dict([(k, v) for k, v in kwargs.items() if not isinstance(v, [Run,Experiment]) ])
+            kwargs_mini = dict([(k, str(v)) for k, v in kwargs.items() ])
             print('begin insert')
             lock_id = self.task.insert({
                 "_version": self.version,
