@@ -56,7 +56,7 @@ class task_locker:
             if isinstance(e, DuplicateKeyError):
                 print(f'Already has same taskid:{self.version},{_task_id}')
             else:
-                print(kwargs_mini)
+                print('kwargs_mini', kwargs_mini)
                 raise e
             return False
 
