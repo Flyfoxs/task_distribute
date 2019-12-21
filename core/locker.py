@@ -158,11 +158,11 @@ class task_locker:
         except Exception as e:
             exist_task = None
 
-        if exist_lock and exist_task and self.remove_faile >= 1:
+        if exist_lock and exist_task and self.remove_failed >= 1:
             self.task.remove({"_version": self.version, '_task_id': task_id})
             print(f'Remove the lock {exist_lock}, job is failed')
 
-        if exist_lock and exist_task and self.remove_faile == 2:
+        if exist_lock and exist_task and self.remove_failed == 2:
             self.client.db.runs.remove({'config.lock_name': task_id,
                                        'config.version':self.version,
                                        'status':'FAILED'
