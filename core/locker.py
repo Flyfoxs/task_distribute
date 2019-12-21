@@ -11,6 +11,7 @@ from datetime import datetime
 import socket
 from easydict import EasyDict as edict
 import sys
+from sacred.run import Run
 
 class task_locker:
 
@@ -40,13 +41,15 @@ class task_locker:
             self.remove_failed_lock(_task_id)
 
         try:
+
+            kwargs_mini = dict([(k, v) for k, v in kwargs.items() if not isinstance(v,Run) ])
             print('begin insert')
             lock_id = self.task.insert({
                 "_version": self.version,
                 "_task_id": _task_id,
                 'server_ip': socket.gethostname(),
                 'ct': datetime.now(),
-                **kwargs})
+                **kwargs_mini})
             print(f'create lock success for block#{_task_id} with:{lock_id}')
             return str(lock_id)
         except Exception as e:
