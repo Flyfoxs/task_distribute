@@ -57,7 +57,7 @@ class task_locker:
             return str(lock_id)
         except Exception as e:
             if isinstance(e, DuplicateKeyError):
-                print(f'Already has same taskid:{self.version},{_task_id}')
+                print(f'Already has same version:{self.version},taskid:{_task_id}')
             else:
                 raise e
             return False
@@ -172,11 +172,10 @@ class task_locker:
             self.client.db.runs.remove(sacred_dict)
             print(f'Remove the failed sacred Job task_id:{task_id}, version:{self.version}')
 
-        # Remove the lock if no job is found is sacred
+        # Remove the lock if no job is found in sacred
         if self.remove_failed == 9:
             duration = datetime.now() - exist_lock.get('ct')
             duration =duration.total_seconds()
-
             sacred_dict = {'config.lock_name': task_id,
                                        'config.version':self.version,
                                        #'status' : {'$in' : ['FAILED', 'INTERRUPTED', 'PROBABLY_DEAD']},
