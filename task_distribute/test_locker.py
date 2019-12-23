@@ -1,4 +1,4 @@
-from core.locker import task_locker
+from task_distribute.locker import task_locker
 import sys
 locker = task_locker('mongodb://sample:password@mongo:27017/db?authSource=admin', version='v300')
 
