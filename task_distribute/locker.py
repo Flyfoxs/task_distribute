@@ -158,7 +158,7 @@ class task_locker:
         try:
             sacred_dict = {'config.lock_name': task_id,
                                        'config.version':self.version,
-                                       'status' : {'$in' : ['FAILED', 'INTERRUPTED', 'PROBABLY_DEAD']},
+                                       'status' : {'$in' : ['FAILED', 'INTERRUPTED']},
                                        }
             exist_task = self.client.db.runs.find_one(sacred_dict)
         except Exception as e:
@@ -168,7 +168,7 @@ class task_locker:
             self.task.remove({"_version": self.version, '_task_id': task_id})
             print(f'Remove the lock {exist_lock}, job is failed')
 
-        if exist_lock and exist_task and self.remove_failed == 2:
+        if exist_lock and exist_task and self.remove_failed >= 2:
             self.client.db.runs.remove(sacred_dict)
             print(f'Remove the failed sacred Job task_id:{task_id}, version:{self.version}')
 
