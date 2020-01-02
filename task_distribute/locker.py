@@ -7,7 +7,7 @@ from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 import functools
 from bson.objectid import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 import socket
 from easydict import EasyDict as edict
 import sys
@@ -156,9 +156,14 @@ class task_locker:
             return
 
         try:
+            #Query job need to drop
             sacred_dict = {'config.lock_name': task_id,
-                                       'config.version':self.version,
-                                       'status' : {'$in' : ['FAILED', 'INTERRUPTED']},
+                           'config.version':self.version,
+                           '$or': [{'status': {'$in': ['FAILED', 'INTERRUPTED']}},
+                                   {"heartbeat": {'$eq': None}},
+                                   {'heartbeat': {'$lt': datetime.utcnow() - timedelta(minutes=3)}},
+                                   ],
+                            "stop_time": {'$eq': None}
                                        }
             exist_task = self.client.db.runs.find_one(sacred_dict)
         except Exception as e:
