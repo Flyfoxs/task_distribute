@@ -160,11 +160,17 @@ class task_locker:
             sacred_dict = {'config.lock_name': task_id,
                            'config.version':self.version,
                            '$or': [{'status': {'$in': ['FAILED', 'INTERRUPTED']}},
-                                   {"heartbeat": {'$eq': None}},
-                                   {'heartbeat': {'$lt': datetime.utcnow() - timedelta(minutes=3)}},
+                                   {'$and' : [{"heartbeat": {'$eq': None}},
+                                              {'start_time': {'$lt': datetime.utcnow() - timedelta(minutes=2)}},
+                                              {'status': {'$in': ['RUNNING']} }
+                                              ]},
+                                   {'$and': [ {'heartbeat': {'$lt': datetime.utcnow() - timedelta(minutes=3)}},
+                                              {'status': {'$in': ['RUNNING']}}
+                                              ]},
+
                                    ],
-                            "stop_time": {'$eq': None}
-                                       }
+
+                            }
             exist_task = self.client.db.runs.find_one(sacred_dict)
         except Exception as e:
             exist_task = None
