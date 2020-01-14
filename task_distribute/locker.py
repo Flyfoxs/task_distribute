@@ -136,6 +136,7 @@ class task_locker:
                                              })
             if exist_lock:
                 print(f'Already had lock#{exist_lock}')
+                yield None
             else:
                 raise Exception(f'Can not create or find any lock')
 
