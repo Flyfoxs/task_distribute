@@ -116,7 +116,7 @@ class task_locker:
         return decorator
 
     @contextlib.contextmanager
-    def lock_block(self, task_id='Default_block', **job_paras):
+    def lock_block(self, task_id, **job_paras):
         import sys
 
         lock_id = self.register_lock(_task_id=task_id, **job_paras, )
@@ -135,7 +135,7 @@ class task_locker:
                                                '_task_id': task_id
                                              })
             if exist_lock:
-                raise Exception(f'Already had lock#{exist_lock}')
+                print(f'Already had lock#{exist_lock}')
             else:
                 raise Exception(f'Can not create or find any lock')
 

@@ -4,7 +4,7 @@ locker = task_locker('mongodb://sample:password@mongo:27017/db?authSource=admin'
 
 
 
-with locker.lock_block('task_3', abc='def') as lock_id:
+with locker.lock_block(task_id='task_3', abc='def') as lock_id:
     print('====='*10, lock_id)
 
     raise Exception('block')
