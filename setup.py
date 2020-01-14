@@ -8,7 +8,7 @@ with open('README.md') as file:
 
 setup(
     name='task_distribute',
-    version='0.1.9',
+    version='0.1.11',
     description='Simple way to distribute task to diff server',
     long_description='Simple way to distribute task to diff server',
     url='https://github.com/Flyfoxs/task_distribute.git',
