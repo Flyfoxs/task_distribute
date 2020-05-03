@@ -58,6 +58,7 @@ class task_locker:
         except Exception as e:
             if isinstance(e, DuplicateKeyError):
                 print(f'Already has same version:{self.version},taskid:{_task_id}')
+                print(e)
             else:
                 raise e
             return False

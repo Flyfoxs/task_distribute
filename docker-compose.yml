@@ -26,6 +26,9 @@ services:
     command: ["--mu", "mongodb://sample:password@mongo:27017/db?authSource=admin"]
     ports:
       - 0.0.0.0:9000:9000
+    environment:
+      #TZ: "America/Denver"
+      - "TZ=Asia/Chongqing"
     networks:
       - omniboard
     depends_on:
