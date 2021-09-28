@@ -20,6 +20,14 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    install_requires=[
+        "sacred",
+        "pymongo",
+        "easydict",
+        "matplotlib",
+        "tqdm>4.29.0",
+        "monthdelta",
+    ],
     keywords='task_distribute',
     packages=setuptools.find_packages(),
 )
